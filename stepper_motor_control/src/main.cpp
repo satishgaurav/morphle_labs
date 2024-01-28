@@ -62,11 +62,6 @@ float inputPos = 100;
 float currentPos = 0;
 float targetPos = 100;
 
-// for testing
-// float inputPos = 1;
-// float currentPos = 0;
-// float targetPos = 1;
-
 // parameters
 float ss = 0; // step size in mm
 int absSteps = 0;
@@ -179,7 +174,7 @@ bool TimerHandler0(struct repeating_timer *t)
 
   if (remainingSteps > 0)
   {
-    Serial << "remainingSteps: " << remainingSteps << "\n";
+    // Serial << "remainingSteps: " << remainingSteps << "\n";
     digitalWrite(DIR_PIN, direction == 1 ? HIGH : LOW);
 
     digitalWrite(STEP_PIN, HIGH);
@@ -193,6 +188,24 @@ bool TimerHandler0(struct repeating_timer *t)
     {
       ITimer0.setInterval(tDelays[remainingSteps], TimerHandler0);
     }
+  }
+  else
+  {
+    // this is the current position
+    if (direction == 1)
+    {
+      currentPos += deltaS;
+    }
+    else
+    {
+      currentPos -= deltaS;
+    }
+
+    stopTime = millis();
+    // runTime = stopTime - startTime;
+    motorStartFlag = false;
+    // Stop the interrupt
+    // ITimer0.detachInterrupt();
   }
 
   return true;
@@ -301,65 +314,76 @@ void loop()
       if (motorStartFlag == false)
       {
         motorStartFlag = true;
-
-        // Calculate the number of steps the motor needs to move
-        deltaS = targetPos - currentPos;
-        absSteps = round(abs(deltaS) / ss);
-
-        // Set direction based on the sign of the distance
-        direction = (deltaS > 0) ? 1 : -1;
-
-        // Store the number of steps in remainingSteps
-        remainingSteps = absSteps;
-
-        // Allocate memory for the tDelays array
-        if (tDelays != NULL)
-        {
-          delete[] tDelays;
-        }
-        tDelays = new int[absSteps];
-
-        float vmax_c = vmax;
-        float s = 0; // current position
-        float s_1 = vmax_c * vmax_c / (2 * acc);
-        float s_2 = deltaS - s_1;
-
-        if (s_1 > s_2) // if we don't even reach full speed
-        {
-          s_1 = deltaS / 2;
-          s_2 = deltaS / 2;
-          vmax_c = sqrt(deltaS * acc);
-        }
-
-        // Calculate tDelay for each step
-        for (int steps = 0; steps < absSteps; steps++)
-        {
-          s = ((float)steps + 0.5) * ss;
-
-          if (s < s_1)
-          {
-            vcurr = sqrt(2 * s * acc);
-          }
-          else if (s < s_2)
-          {
-            vcurr = vmax_c;
-          }
-          else
-          {
-            vcurr = sqrt(vmax_c * vmax_c - 2 * (s - s_2) * acc);
-          }
-
-          // Convert velocity to delay
-          tDelays[steps] = round(ss / vcurr * 1e6); // in micros
-        }
-
-        // Start the timer with the tDelay for the first step
-        // ITimer0.attachInterruptInterval(tDelays[0], TimerHandler0);
-        ITimer0.setInterval(tDelays[0], TimerHandler0);
       }
       break;
     }
   }
+
+  if (motorStartFlag)
+  {
+    // Calculate the number of steps the motor needs to move
+    deltaS = targetPos - currentPos;
+    absSteps = round(abs(deltaS) / ss);
+
+    // Set direction based on the sign of the distance
+    direction = (deltaS > 0) ? 1 : -1;
+
+    // Store the number of steps in remainingSteps
+    remainingSteps = absSteps;
+
+    // Allocate memory for the tDelays array
+    if (tDelays != NULL)
+    {
+      delete[] tDelays;
+    }
+    tDelays = new int[absSteps];
+
+    float vmax_c = vmax;
+    float s = 0; // current position
+    float s_1 = vmax_c * vmax_c / (2 * acc);
+    float s_2 = deltaS - s_1;
+
+    if (s_1 > s_2) // if we don't even reach full speed
+    {
+      s_1 = deltaS / 2;
+      s_2 = deltaS / 2;
+      vmax_c = sqrt(deltaS * acc);
+    }
+
+    // Calculate tDelay for each step
+    for (int steps = 0; steps < absSteps; steps++)
+    {
+      s = ((float)steps + 0.5) * ss;
+
+      if (s < s_1)
+      {
+        vcurr = sqrt(2 * s * acc);
+      }
+      else if (s < s_2)
+      {
+        vcurr = vmax_c;
+      }
+      else
+      {
+        vcurr = sqrt(vmax_c * vmax_c - 2 * (s - s_2) * acc);
+      }
+
+      // Convert velocity to delay
+      tDelays[steps] = round(ss / vcurr * 1e6); // in micros
+    }
+
+    Serial.println("Starting motor");
+    // Start the timer with the tDelay for the first step
+    ITimer0.attachInterruptInterval(tDelays[0], TimerHandler0);
+    // ITimer0.setInterval(tDelays[0], TimerHandler0);
+  }
+
+  EVERY_N_MILLISECONDS(1000)
+  {
+    Serial << "main loop is running "
+           << "\n";
+  }
+
   // print the input
   if (prevDirection != direction || prevDistance != inputPos || prevVelocity != vmax || prevAccel != acc)
   {

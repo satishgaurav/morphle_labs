@@ -79,3 +79,41 @@
   //   // runTime = stopTime - startTime;
   //   motorStartFlag = false;
   // }
+
+
+  // interrupt piece of code: 
+   // if (remainingSteps > 0)
+  // {
+  //   Serial << "remainingSteps: " << remainingSteps << "\n";
+  //   digitalWrite(DIR_PIN, direction == 1 ? HIGH : LOW);
+
+  //   digitalWrite(STEP_PIN, HIGH);
+  //   delayMicroseconds(tDelays[remainingSteps] / 2.0);
+  //   digitalWrite(STEP_PIN, LOW);
+  //   delayMicroseconds(tDelays[remainingSteps] / 2.0);
+
+  //   remainingSteps--;
+
+  //   if (remainingSteps > 0)
+  //   {
+  //     ITimer0.setInterval(tDelays[remainingSteps], TimerHandler0);
+  //   }
+  // }
+  // else
+  // {
+  //   // this is the current position
+  //   if (direction == 1)
+  //   {
+  //     currentPos += deltaS;
+  //   }
+  //   else
+  //   {
+  //     currentPos -= deltaS;
+  //   }
+
+  //   stopTime = millis();
+  //   // runTime = stopTime - startTime;
+  //   motorStartFlag = false;
+  //   // Stop the interrupt
+  //   ITimer0.detachInterrupt();
+  // }

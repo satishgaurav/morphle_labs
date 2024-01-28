@@ -34,13 +34,7 @@ uint8_t colPins[COLS] = {19, 18, 17, 16}; // Pins connected to C1, C2, C3, C4
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 
 // define a timer
-RPI_PICO_Timer ITimer(0);
-
-// timer function
-bool ITimer_ISR()
-{
-  return true;
-}
+RPI_PICO_Timer ITimer0(0);
 
 //========== PRINT OPERATOR =============
 template <class T>
@@ -62,11 +56,16 @@ const int spr = 200;  // steps/revolution
 const float pl = 8.0; // pitch length mm/revolution
 const int ms = 16;    // microsteps
 
-int direction = 1; // 1 for CW, -1 for CCW
+volatile int direction = 1; // 1 for CW, -1 for CCW
 
 float inputPos = 100;
 float currentPos = 0;
 float targetPos = 100;
+
+// for testing
+// float inputPos = 1;
+// float currentPos = 0;
+// float targetPos = 1;
 
 // parameters
 float ss = 0; // step size in mm
@@ -92,6 +91,8 @@ unsigned long tTime = 0;
 
 // testing interrupt
 volatile int remainingSteps = 0;
+volatile int tDelay = 0; // in micros
+volatile int *tDelays = NULL;
 
 // take user input
 int getInput(const char *context, const char *unit)
@@ -176,16 +177,23 @@ bool TimerHandler0(struct repeating_timer *t)
 {
   (void)t;
 
-  // static bool toggle0 = false;
+  if (remainingSteps > 0)
+  {
+    Serial << "remainingSteps: " << remainingSteps << "\n";
+    digitalWrite(DIR_PIN, direction == 1 ? HIGH : LOW);
 
-  // // #if (TIMER_INTERRUPT_DEBUG > 0)
-  // Serial.print("ITimer0: millis() = ");
-  // Serial.println(millis());
-  // // #endif
+    digitalWrite(STEP_PIN, HIGH);
+    delayMicroseconds(tDelays[remainingSteps] / 2.0);
+    digitalWrite(STEP_PIN, LOW);
+    delayMicroseconds(tDelays[remainingSteps] / 2.0);
 
-  // // timer interrupt toggles pin LED_BUILTIN
-  // digitalWrite(LED_BUILTIN, toggle0);
-  // toggle0 = !toggle0;
+    remainingSteps--;
+
+    if (remainingSteps > 0)
+    {
+      ITimer0.setInterval(tDelays[remainingSteps], TimerHandler0);
+    }
+  }
 
   return true;
 }
@@ -201,9 +209,28 @@ void setup()
   lcd.backlight();
 
   Serial.begin(115200);
-  if (ITimer.attachInterruptInterval(1000, TimerHandler0))
+
+  while (!Serial)
+    ;
+
+  delay(100);
+
+  Serial.print(F("\nStarting Change_Interval on "));
+  Serial.println(BOARD_NAME);
+  Serial.println(RPI_PICO_TIMER_INTERRUPT_VERSION);
+  Serial.print(F("CPU Frequency = "));
+  Serial.print(F_CPU / 1000000);
+  Serial.println(F(" MHz"));
+
+  tDelay = (int)round(ss / vmax * 1e6); // in micros
+
+  Serial << "tDelay: " << tDelay << '\n'; // Debug print statement
+
+  if (ITimer0.attachInterruptInterval(50, TimerHandler0))
   {
-    Serial << "Starting ITimer OK, millis() = " << millis() << '\n';
+    // Serial << "timer callback attached "
+    //        << "\n";
+    // Serial << "Starting ITimer OK, millis() = " << millis() << '\n';
   }
   else
   {
@@ -274,93 +301,65 @@ void loop()
       if (motorStartFlag == false)
       {
         motorStartFlag = true;
+
+        // Calculate the number of steps the motor needs to move
+        deltaS = targetPos - currentPos;
+        absSteps = round(abs(deltaS) / ss);
+
+        // Set direction based on the sign of the distance
+        direction = (deltaS > 0) ? 1 : -1;
+
+        // Store the number of steps in remainingSteps
+        remainingSteps = absSteps;
+
+        // Allocate memory for the tDelays array
+        if (tDelays != NULL)
+        {
+          delete[] tDelays;
+        }
+        tDelays = new int[absSteps];
+
+        float vmax_c = vmax;
+        float s = 0; // current position
+        float s_1 = vmax_c * vmax_c / (2 * acc);
+        float s_2 = deltaS - s_1;
+
+        if (s_1 > s_2) // if we don't even reach full speed
+        {
+          s_1 = deltaS / 2;
+          s_2 = deltaS / 2;
+          vmax_c = sqrt(deltaS * acc);
+        }
+
+        // Calculate tDelay for each step
+        for (int steps = 0; steps < absSteps; steps++)
+        {
+          s = ((float)steps + 0.5) * ss;
+
+          if (s < s_1)
+          {
+            vcurr = sqrt(2 * s * acc);
+          }
+          else if (s < s_2)
+          {
+            vcurr = vmax_c;
+          }
+          else
+          {
+            vcurr = sqrt(vmax_c * vmax_c - 2 * (s - s_2) * acc);
+          }
+
+          // Convert velocity to delay
+          tDelays[steps] = round(ss / vcurr * 1e6); // in micros
+        }
+
+        // Start the timer with the tDelay for the first step
+        // ITimer0.attachInterruptInterval(tDelays[0], TimerHandler0);
+        ITimer0.setInterval(tDelays[0], TimerHandler0);
       }
       break;
     }
   }
-
-  if (motorStartFlag)
-  {
-    startTime = millis();
-
-    // take absolute value of position
-    deltaS = targetPos - currentPos;
-    Serial << "deltaS: " << deltaS << '\n';
-
-    absSteps = round(abs(deltaS) / ss);
-
-    float vmax_c = vmax;
-
-    // Set direction based on the sign of the distance
-    direction = (deltaS > 0) ? 1 : -1;
-    Serial << "absSteps: " << absSteps << " direction: " << direction << "\n";
-    deltaS = abs(deltaS);
-    tTime = 0;
-
-    float s = 0; // current position
-
-    float s_1 = vmax_c * vmax_c / (2 * acc);
-    float s_2 = deltaS - s_1;
-
-    if (s_1 > s_2) // if we don't even reach full speed
-    {
-      s_1 = deltaS / 2;
-      s_2 = deltaS / 2;
-      vmax_c = sqrt(deltaS * acc);
-    }
-
-    for (int steps = 0; steps < absSteps; steps++)
-    {
-
-      s = ((float)steps + 0.5) * ss;
-
-      if (s < s_1)
-      {
-        vcurr = sqrt(2 * s * acc);
-      }
-      else if (s < s_2)
-      {
-        vcurr = vmax_c;
-      }
-      else
-      {
-        vcurr = sqrt(vmax_c * vmax_c - 2 * (s - s_2) * acc);
-      }
-
-      // Serial << "s: " << s << " s_1: " << s_1 << " s_2: " << s_2 << " vcurr: " << vcurr << "\n";
-
-      // convert velocity to delay
-      int tDelay = round(ss / vcurr * 1e6); // in micros
-      tTime += tDelay;
-
-      // EVERY_N_MILLISECONDS(100)
-      // {
-      //   Serial << "absSteps: " << absSteps << " s1: " << s_1 << "vcurr: " << vcurr << " tDelay: " << tDelay << " current pos: " << s << "\n";
-      // }
-
-      digitalWrite(DIR_PIN, direction == 1 ? HIGH : LOW);
-
-      digitalWrite(STEP_PIN, HIGH);
-      delayMicroseconds(tDelay / 2.0);
-      digitalWrite(STEP_PIN, LOW);
-      delayMicroseconds(tDelay / 2.0);
-    }
-
-    // this is the current position
-    if (direction == 1)
-    {
-      currentPos += deltaS;
-    }
-    else
-    {
-      currentPos -= deltaS;
-    }
-
-    stopTime = millis();
-    // runTime = stopTime - startTime;
-    motorStartFlag = false;
-  }
-
   // print the input
   if (prevDirection != direction || prevDistance != inputPos || prevVelocity != vmax || prevAccel != acc)
   {

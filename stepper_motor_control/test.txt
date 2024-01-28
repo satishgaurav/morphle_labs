@@ -1,0 +1,119 @@
+ // if (motorStartFlag)
+  // {
+  //   startTime = millis();
+
+  //   // take absolute value of position
+  //   deltaS = targetPos - currentPos;
+  //   Serial << "deltaS: " << deltaS << '\n';
+
+  //   absSteps = round(abs(deltaS) / ss);
+
+  //   float vmax_c = vmax;
+
+  //   // Set direction based on the sign of the distance
+  //   direction = (deltaS > 0) ? 1 : -1;
+  //   Serial << "absSteps: " << absSteps << " direction: " << direction << "\n";
+  //   deltaS = abs(deltaS);
+  //   tTime = 0;
+
+  //   float s = 0; // current position
+
+  //   float s_1 = vmax_c * vmax_c / (2 * acc);
+  //   float s_2 = deltaS - s_1;
+
+  //   if (s_1 > s_2) // if we don't even reach full speed
+  //   {
+  //     s_1 = deltaS / 2;
+  //     s_2 = deltaS / 2;
+  //     vmax_c = sqrt(deltaS * acc);
+  //   }
+
+  //   for (int steps = 0; steps < absSteps; steps++)
+  //   {
+
+  //     s = ((float)steps + 0.5) * ss;
+
+  //     if (s < s_1)
+  //     {
+  //       vcurr = sqrt(2 * s * acc);
+  //     }
+  //     else if (s < s_2)
+  //     {
+  //       vcurr = vmax_c;
+  //     }
+  //     else
+  //     {
+  //       vcurr = sqrt(vmax_c * vmax_c - 2 * (s - s_2) * acc);
+  //     }
+
+  //     // Serial << "s: " << s << " s_1: " << s_1 << " s_2: " << s_2 << " vcurr: " << vcurr << "\n";
+
+  //     // convert velocity to delay
+  //     int tDelay = round(ss / vcurr * 1e6); // in micros
+  //     tTime += tDelay;
+
+  //     // EVERY_N_MILLISECONDS(100)
+  //     // {
+  //     //   Serial << "absSteps: " << absSteps << " s1: " << s_1 << "vcurr: " << vcurr << " tDelay: " << tDelay << " current pos: " << s << "\n";
+  //     // }
+
+  //     digitalWrite(DIR_PIN, direction == 1 ? HIGH : LOW);
+
+  //     digitalWrite(STEP_PIN, HIGH);
+  //     delayMicroseconds(tDelay / 2.0);
+  //     digitalWrite(STEP_PIN, LOW);
+  //     delayMicroseconds(tDelay / 2.0);
+  //   }
+
+  //   // this is the current position
+  //   if (direction == 1)
+  //   {
+  //     currentPos += deltaS;
+  //   }
+  //   else
+  //   {
+  //     currentPos -= deltaS;
+  //   }
+
+  //   stopTime = millis();
+  //   // runTime = stopTime - startTime;
+  //   motorStartFlag = false;
+  // }
+
+
+  // interrupt piece of code: 
+   // if (remainingSteps > 0)
+  // {
+  //   Serial << "remainingSteps: " << remainingSteps << "\n";
+  //   digitalWrite(DIR_PIN, direction == 1 ? HIGH : LOW);
+
+  //   digitalWrite(STEP_PIN, HIGH);
+  //   delayMicroseconds(tDelays[remainingSteps] / 2.0);
+  //   digitalWrite(STEP_PIN, LOW);
+  //   delayMicroseconds(tDelays[remainingSteps] / 2.0);
+
+  //   remainingSteps--;
+
+  //   if (remainingSteps > 0)
+  //   {
+  //     ITimer0.setInterval(tDelays[remainingSteps], TimerHandler0);
+  //   }
+  // }
+  // else
+  // {
+  //   // this is the current position
+  //   if (direction == 1)
+  //   {
+  //     currentPos += deltaS;
+  //   }
+  //   else
+  //   {
+  //     currentPos -= deltaS;
+  //   }
+
+  //   stopTime = millis();
+  //   // runTime = stopTime - startTime;
+  //   motorStartFlag = false;
+  //   // Stop the interrupt
+  //   ITimer0.detachInterrupt();
+  // }

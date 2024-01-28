@@ -7,9 +7,11 @@
 - click on diagram.json file
 - click on run button
 
-### Circuit diagram
+### Circuit Diagram:
 
-### INPUT MAPPING:
+![circuit diagram](./images/circuit_diagram.png)
+
+### Input Mapping:
 
 press 1 to change maxVelocity; press c to erase and set new value
 press \* to confirm the value

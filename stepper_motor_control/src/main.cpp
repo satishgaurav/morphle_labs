@@ -10,6 +10,9 @@
 #include <Keypad.h>
 #include <FastLED.h>
 
+// rpi pico timer interrupt
+#include <RPI_PICO_TimerInterrupt.h>
+
 #define I2C_ADDR 0x27
 #define LCD_COLUMNS 20
 #define LCD_LINES 2
@@ -29,6 +32,15 @@ uint8_t rowPins[ROWS] = {26, 22, 21, 20}; // Pins connected to R1, R2, R3, R4
 uint8_t colPins[COLS] = {19, 18, 17, 16}; // Pins connected to C1, C2, C3, C4
 
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
+
+// define a timer
+RPI_PICO_Timer ITimer(0);
+
+// timer function
+bool ITimer_ISR()
+{
+  return true;
+}
 
 //========== PRINT OPERATOR =============
 template <class T>
@@ -77,6 +89,9 @@ unsigned long startTime = 0;
 unsigned long stopTime = 0;
 unsigned long runTime = 0;
 unsigned long tTime = 0;
+
+// testing interrupt
+volatile int remainingSteps = 0;
 
 // take user input
 int getInput(const char *context, const char *unit)
@@ -157,6 +172,24 @@ int getInput(const char *context, const char *unit)
   return inputValue;
 }
 
+bool TimerHandler0(struct repeating_timer *t)
+{
+  (void)t;
+
+  // static bool toggle0 = false;
+
+  // // #if (TIMER_INTERRUPT_DEBUG > 0)
+  // Serial.print("ITimer0: millis() = ");
+  // Serial.println(millis());
+  // // #endif
+
+  // // timer interrupt toggles pin LED_BUILTIN
+  // digitalWrite(LED_BUILTIN, toggle0);
+  // toggle0 = !toggle0;
+
+  return true;
+}
+
 void setup()
 {
   // Set up pins
@@ -168,6 +201,14 @@ void setup()
   lcd.backlight();
 
   Serial.begin(115200);
+  if (ITimer.attachInterruptInterval(1000, TimerHandler0))
+  {
+    Serial << "Starting ITimer OK, millis() = " << millis() << '\n';
+  }
+  else
+  {
+    Serial << "Can't set ITimer correctly. Select another freq. or interval" << '\n';
+  }
 
   // Calculate steps needed for the motion
   ss = pl / (spr * ms);
@@ -331,12 +372,6 @@ void loop()
     prevVelocity = vmax;
     prevAccel = acc;
   }
-
-  // EVERY_N_SECONDS(1)
-  // {
-  //   Serial << "this is working "
-  //          << "\n";
-  // }
 
   lcd.setCursor(0, 0);
   lcd.print("Position:");

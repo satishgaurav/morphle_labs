@@ -1,20 +1,20 @@
-
-
+// LCD2004 and Pi Pico!
 #include <Arduino.h>
+
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <Keypad.h>
 
 // define motor connections
 #define DIR_PIN 2
 #define STEP_PIN 3
 
-#include <LiquidCrystal_I2C.h>
-#include <Keypad.h>
-#include <FastLED.h>
+// define microstepping pins
+#define MS1_PIN 10
+#define MS2_PIN 11
+#define MS3_PIN 12
 
-#define I2C_ADDR 0x27
-#define LCD_COLUMNS 20
-#define LCD_LINES 2
-
-LiquidCrystal_I2C lcd(I2C_ADDR, LCD_COLUMNS, LCD_LINES);
+LiquidCrystal_I2C lcd(0x27, 20, 4);
 
 const uint8_t ROWS = 4;
 const uint8_t COLS = 4;
@@ -48,13 +48,13 @@ inline Print &operator<<(Print &obj, float arg)
 // Motor constants
 const int spr = 200;  // steps/revolution
 const float pl = 8.0; // pitch length mm/revolution
-const int ms = 16;    // microsteps
+int ms = 1;           // microsteps
 
 int direction = 1; // 1 for CW, -1 for CCW
 
-float inputPos = 100;
+float inputPos = 25;
 float currentPos = 0;
-float targetPos = 100;
+float targetPos = 25;
 
 // parameters
 float ss = 0; // step size in mm
@@ -70,6 +70,7 @@ float prevVelocity = 0;
 float prevDistance = 0;
 float prevAccel = 0;
 int prevDirection = 0;
+int prevMs = 0;
 
 bool motorStartFlag = false;
 
@@ -157,20 +158,69 @@ int getInput(const char *context, const char *unit)
   return inputValue;
 }
 
+void setMicrostepping(int ms)
+{
+  // enable microstepping
+  if (ms == 16)
+  {
+    digitalWrite(MS1_PIN, HIGH);
+    digitalWrite(MS2_PIN, HIGH);
+    digitalWrite(MS3_PIN, HIGH);
+  }
+  else if (ms == 8)
+  {
+    digitalWrite(MS1_PIN, HIGH);
+    digitalWrite(MS2_PIN, HIGH);
+    digitalWrite(MS3_PIN, LOW);
+  }
+  else if (ms == 4)
+  {
+    digitalWrite(MS1_PIN, LOW);
+    digitalWrite(MS2_PIN, HIGH);
+    digitalWrite(MS3_PIN, LOW);
+  }
+  else if (ms == 2)
+  {
+    digitalWrite(MS1_PIN, HIGH);
+    digitalWrite(MS2_PIN, LOW);
+    digitalWrite(MS3_PIN, LOW);
+  }
+  else if (ms == 1)
+  {
+    digitalWrite(MS1_PIN, LOW);
+    digitalWrite(MS2_PIN, LOW);
+    digitalWrite(MS3_PIN, LOW);
+  }
+}
+
 void setup()
 {
+  Wire.setSDA(8);
+  Wire.setSCL(9);
+  Wire.begin();
+
+  lcd.init();
+  lcd.backlight();
+  lcd.begin(0, 2);
+  lcd.print("Hello World!");
+
+  lcd.setCursor(2, 1);
+  lcd.print("> Pi Pico <");
+
+  // Calculate steps needed for the motion
+  ss = pl / (spr * ms);
+
   // Set up pins
   pinMode(STEP_PIN, OUTPUT);
   pinMode(DIR_PIN, OUTPUT);
 
-  // Init
-  lcd.init();
-  lcd.backlight();
+  // microstepping pin
+  pinMode(MS1_PIN, OUTPUT);
+  pinMode(MS2_PIN, OUTPUT);
+  pinMode(MS3_PIN, OUTPUT);
 
-  Serial.begin(115200);
-
-  // Calculate steps needed for the motion
-  ss = pl / (spr * ms);
+  delay(1000);
+  lcd.clear();
 }
 
 void loop()
@@ -227,6 +277,13 @@ void loop()
         acc = 400;
       }
       break;
+    case '4':
+      // take acceleration input
+      prevMs = ms;
+      ms = getInput("Microstep", "");
+      setMicrostepping(ms);
+      ss = pl / (spr * ms);
+      break;
     case '#':
       // Start the motor
       lcd.clear();
@@ -240,7 +297,6 @@ void loop()
 
   if (motorStartFlag)
   {
-    startTime = millis();
 
     // take absolute value of position
     deltaS = targetPos - currentPos;
@@ -252,7 +308,7 @@ void loop()
 
     // Set direction based on the sign of the distance
     direction = (deltaS > 0) ? 1 : -1;
-    Serial << "absSteps: " << absSteps << " direction: " << direction << "\n";
+    Serial << "absSteps: " << absSteps << " step size: " << ss << " direction: " << direction << "\n";
     deltaS = abs(deltaS);
     tTime = 0;
 
@@ -268,6 +324,7 @@ void loop()
       vmax_c = sqrt(deltaS * acc);
     }
 
+    startTime = micros();
     for (int steps = 0; steps < absSteps; steps++)
     {
 
@@ -305,6 +362,8 @@ void loop()
       delayMicroseconds(tDelay / 2.0);
     }
 
+    stopTime = micros();
+
     // this is the current position
     if (direction == 1)
     {
@@ -315,21 +374,24 @@ void loop()
       currentPos -= deltaS;
     }
 
-    stopTime = millis();
-    // runTime = stopTime - startTime;
+    // finally calculate the total elapsed time
+    runTime = stopTime - startTime;
     motorStartFlag = false;
   }
 
   // print the input
-  if (prevDirection != direction || prevDistance != inputPos || prevVelocity != vmax || prevAccel != acc)
+  if (prevDirection != direction || prevDistance != inputPos || prevVelocity != vmax || prevAccel != acc || prevMs != ms)
   {
 
-    Serial << "Direction: " << direction << " Distance: " << inputPos << " Velocity: " << vmax << " Acceleration: " << acc << "\n";
+    Serial << "Direction: " << direction << " Distance: "
+           << inputPos << " Velocity: " << vmax << " Acceleration: "
+           << acc << " ms: " << ms << "\n";
 
     prevDirection = direction;
     prevDistance = inputPos;
     prevVelocity = vmax;
     prevAccel = acc;
+    prevMs = ms;
   }
 
   // EVERY_N_SECONDS(1)
@@ -345,5 +407,6 @@ void loop()
   lcd.setCursor(0, 1);
   lcd.print("Time:");
   lcd.print(tTime / 1000000.0);
+  // lcd.print(runTime / 1000.0);
   lcd.print(" s");
 }

@@ -1,360 +1,477 @@
 {
-    "version": 1,
-    "author": "Uri Shaked",
-    "editor": "wokwi",
-    "parts": [
-        {
-            "type": "wokwi-pi-pico",
-            "id": "pico",
-            "top": -3.15,
-            "left": -418.8,
-            "attrs": {}
-        },
-        {
-            "type": "wokwi-a4988",
-            "id": "drv1",
-            "top": 129.8,
-            "left": -23.6,
-            "rotate": 270,
-            "attrs": {}
-        },
-        {
-            "type": "wokwi-stepper-motor",
-            "id": "stepper1",
-            "top": -177.89,
-            "left": 144.88,
-            "attrs": {
-                "size": "17",
-                "display": "steps",
-                "arrow": "orange"
-            }
-        },
-        {
-            "type": "wokwi-lcd1602",
-            "id": "lcd1",
-            "top": -214.4,
-            "left": -340,
-            "attrs": {
-                "pins": "i2c"
-            }
-        },
-        {
-            "type": "wokwi-membrane-keypad",
-            "id": "keypad1",
-            "top": -194,
-            "left": -858.4,
-            "attrs": {}
-        },
-        {
-            "type": "wokwi-resistor",
-            "id": "r1",
-            "top": 263.15,
-            "left": -998.4,
-            "attrs": {
-                "value": "1000"
-            }
-        },
-        {
-            "type": "wokwi-resistor",
-            "id": "r2",
-            "top": 205.55,
-            "left": -998.4,
-            "attrs": {
-                "value": "1000"
-            }
-        },
-        {
-            "type": "wokwi-resistor",
-            "id": "r3",
-            "top": 176.75,
-            "left": -998.4,
-            "attrs": {
-                "value": "1000"
-            }
-        },
-        {
-            "type": "wokwi-resistor",
-            "id": "r4",
-            "top": 234.35,
-            "left": -998.4,
-            "attrs": {
-                "value": "1000"
-            }
-        }
+  "version": 1,
+  "author": "Uri Shaked",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "wokwi-pi-pico",
+      "id": "pico",
+      "top": -236.33,
+      "left": -140.69,
+      "rotate": 90,
+      "attrs": {
+        "env": "arduino-community"
+      }
+    },
+    {
+      "type": "wokwi-lcd2004",
+      "id": "lcd",
+      "top": -86.52,
+      "left": 11.36,
+      "attrs": {
+        "pins": "i2c"
+      }
+    },
+    {
+      "type": "wokwi-a4988",
+      "id": "drv1",
+      "top": -225.6,
+      "left": 110.4,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-stepper-motor",
+      "id": "stepper1",
+      "top": -409.19,
+      "left": 259.63,
+      "attrs": {
+        "size": "17",
+        "display": "steps",
+        "arrow": "red"
+      }
+    },
+    {
+      "type": "wokwi-membrane-keypad",
+      "id": "keypad1",
+      "top": -261.2,
+      "left": -714.4,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r1",
+      "top": 196.8,
+      "left": -691.75,
+      "rotate": 90,
+      "attrs": {
+        "value": "1000"
+      }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r2",
+      "top": 216,
+      "left": -662.95,
+      "rotate": 90,
+      "attrs": {
+        "value": "1000"
+      }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r3",
+      "top": 244.8,
+      "left": -605.35,
+      "rotate": 90,
+      "attrs": {
+        "value": "1000"
+      }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r4",
+      "top": 235.2,
+      "left": -634.15,
+      "rotate": 90,
+      "attrs": {
+        "value": "1000"
+      }
+    }
+  ],
+  "connections": [
+    [
+      "pico:GND.1",
+      "lcd:VSS",
+      "black",
+      [
+        "v-51",
+        "*",
+        "h0",
+        "v18"
+      ]
     ],
-    "connections": [
-        [
-            "drv1:1B",
-            "stepper1:B-",
-            "black",
-            [
-                "v-57.75",
-                "h246.41"
-            ]
-        ],
-        [
-            "drv1:1A",
-            "stepper1:B+",
-            "green",
-            [
-                "v-67.35",
-                "h249.68"
-            ]
-        ],
-        [
-            "stepper1:A+",
-            "drv1:2A",
-            "blue",
-            [
-                "v95.1",
-                "h-221.33"
-            ]
-        ],
-        [
-            "stepper1:A-",
-            "drv1:2B",
-            "red",
-            [
-                "v68.71",
-                "h-246.4"
-            ]
-        ],
-        [
-            "drv1:SLEEP",
-            "drv1:RESET",
-            "green",
-            [
-                "v15.92",
-                "h-9.9"
-            ]
-        ],
-        [
-            "drv1:STEP",
-            "pico:GP3",
-            "orange",
-            [
-                "v130.8",
-                "h-203.87",
-                "v-163.2"
-            ]
-        ],
-        [
-            "drv1:DIR",
-            "pico:GP2",
-            "violet",
-            [
-                "v140.4",
-                "h-223.07",
-                "v-182.4"
-            ]
-        ],
-        [
-            "drv1:GND.2",
-            "pico:GND.8",
-            "black",
-            [
-                "v0"
-            ]
-        ],
-        [
-            "pico:VBUS",
-            "drv1:VDD",
-            "red",
-            [
-                "h0"
-            ]
-        ],
-        [
-            "lcd1:GND",
-            "pico:GND.1",
-            "black",
-            [
-                "h-134.4",
-                "v211.2"
-            ]
-        ],
-        [
-            "pico:GP4",
-            "lcd1:SDA",
-            "orange",
-            [
-                "h-48",
-                "v-220.8",
-                "h124.8"
-            ]
-        ],
-        [
-            "lcd1:VCC",
-            "pico:VBUS",
-            "red",
-            [
-                "h-115.2",
-                "v144.1",
-                "h104.4"
-            ]
-        ],
-        [
-            "lcd1:SCL",
-            "pico:GP5",
-            "green",
-            [
-                "h-105.6",
-                "v221.1"
-            ]
-        ],
-        [
-            "keypad1:R1",
-            "pico:GP26",
-            "green",
-            [
-                "v144",
-                "h508.8",
-                "v-192"
-            ]
-        ],
-        [
-            "keypad1:R2",
-            "pico:GP22",
-            "green",
-            [
-                "v134.4",
-                "h489.2",
-                "v-163.2"
-            ]
-        ],
-        [
-            "keypad1:R3",
-            "pico:GP21",
-            "green",
-            [
-                "v124.8",
-                "h470.1",
-                "v-134.4"
-            ]
-        ],
-        [
-            "keypad1:R4",
-            "pico:GP20",
-            "green",
-            [
-                "v115.2",
-                "h451",
-                "v-115.2"
-            ]
-        ],
-        [
-            "keypad1:C1",
-            "pico:GP19",
-            "green",
-            [
-                "v105.6",
-                "h431.9",
-                "v-96"
-            ]
-        ],
-        [
-            "keypad1:C2",
-            "pico:GP18",
-            "green",
-            [
-                "v96",
-                "h412.8",
-                "v-76.8"
-            ]
-        ],
-        [
-            "keypad1:C3",
-            "pico:GP17",
-            "green",
-            [
-                "v86.4",
-                "h393.45",
-                "v-48"
-            ]
-        ],
-        [
-            "keypad1:C4",
-            "pico:GP16",
-            "green",
-            [
-                "v76.8",
-                "h374.1",
-                "v-28.8",
-                "h-28.8"
-            ]
-        ],
-        [
-            "r3:2",
-            "keypad1:R1",
-            "green",
-            [
-                "v-19.2",
-                "h181.2"
-            ]
-        ],
-        [
-            "r2:2",
-            "keypad1:R2",
-            "green",
-            [
-                "v-19.2",
-                "h191.2"
-            ]
-        ],
-        [
-            "r4:2",
-            "keypad1:R3",
-            "green",
-            [
-                "v-9.6",
-                "h200.7"
-            ]
-        ],
-        [
-            "r1:2",
-            "keypad1:R4",
-            "green",
-            [
-                "v-9.6",
-                "h210.2"
-            ]
-        ],
-        [
-            "r2:1",
-            "r4:1",
-            "red",
-            [
-                "v0",
-                "h-19.2",
-                "v0"
-            ]
-        ],
-        [
-            "r1:1",
-            "r4:1",
-            "red",
-            [
-                "v0"
-            ]
-        ],
-        [
-            "r2:1",
-            "r3:1",
-            "red",
-            [
-                "v0"
-            ]
-        ],
-        [
-            "r1:1",
-            "pico:VBUS",
-            "red",
-            [
-                "v86.4",
-                "h768",
-                "v-345.6"
-            ]
-        ]
+    [
+      "pico:GND.1",
+      "lcd:K",
+      "black",
+      [
+        "v-51",
+        "*",
+        "h0",
+        "v18"
+      ]
     ],
-    "dependencies": {}
+    [
+      "pico:GND.1",
+      "lcd:RW",
+      "black",
+      [
+        "v-51",
+        "*",
+        "h0",
+        "v18"
+      ]
+    ],
+    [
+      "pico:VSYS",
+      "lcd:VDD",
+      "red",
+      [
+        "v16",
+        "h-16"
+      ]
+    ],
+    [
+      "pico:GP12",
+      "lcd:RS",
+      "blue",
+      [
+        "v-16",
+        "*",
+        "h0",
+        "v20"
+      ]
+    ],
+    [
+      "pico:GP11",
+      "lcd:E",
+      "purple",
+      [
+        "v-20",
+        "*",
+        "h0",
+        "v20"
+      ]
+    ],
+    [
+      "pico:GP10",
+      "lcd:D4",
+      "green",
+      [
+        "v-24",
+        "*",
+        "h0",
+        "v20"
+      ]
+    ],
+    [
+      "pico:GP9",
+      "lcd:D5",
+      "brown",
+      [
+        "v-28",
+        "*",
+        "h0",
+        "v20"
+      ]
+    ],
+    [
+      "pico:GP8",
+      "lcd:D6",
+      "gold",
+      [
+        "v-32",
+        "*",
+        "h0",
+        "v20"
+      ]
+    ],
+    [
+      "pico:GP7",
+      "lcd:D7",
+      "gray",
+      [
+        "v-36",
+        "*",
+        "h0",
+        "v20"
+      ]
+    ],
+    [
+      "lcd:GND",
+      "pico:GND.8",
+      "black",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "lcd:VCC",
+      "pico:VBUS",
+      "red",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "lcd:SDA",
+      "pico:GP8",
+      "green",
+      [
+        "h-82.56",
+        "v-214.08",
+        "h-42.74"
+      ]
+    ],
+    [
+      "lcd:SCL",
+      "pico:GP9",
+      "green",
+      [
+        "h-92.16",
+        "v-213.98",
+        "h-42.74"
+      ]
+    ],
+    [
+      "drv1:2B",
+      "stepper1:A-",
+      "green",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "drv1:2A",
+      "stepper1:A+",
+      "green",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "drv1:1A",
+      "stepper1:B+",
+      "green",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "drv1:1B",
+      "stepper1:B-",
+      "green",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "drv1:MS1",
+      "pico:GP10",
+      "green",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "drv1:MS2",
+      "pico:GP11",
+      "green",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "drv1:MS3",
+      "pico:GP12",
+      "green",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "drv1:RESET",
+      "drv1:SLEEP",
+      "green",
+      [
+        "h-19.2",
+        "v9.6"
+      ]
+    ],
+    [
+      "drv1:STEP",
+      "pico:GP3",
+      "green",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "drv1:DIR",
+      "pico:GP2",
+      "green",
+      [
+        "h0"
+      ]
+    ],
+    [
+      "drv1:GND.1",
+      "pico:GND.2",
+      "black",
+      [
+        "v19.28",
+        "h-244.19"
+      ]
+    ],
+    [
+      "drv1:VDD",
+      "pico:VBUS",
+      "green",
+      [
+        "h28.95",
+        "v59.45"
+      ]
+    ],
+    [
+      "keypad1:R1",
+      "r1:1",
+      "green",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "keypad1:R2",
+      "r2:1",
+      "green",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "keypad1:R3",
+      "r4:1",
+      "green",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "keypad1:R4",
+      "r3:1",
+      "green",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "pico:GP26",
+      "keypad1:R1",
+      "green",
+      [
+        "v247.83",
+        "h-514.06"
+      ]
+    ],
+    [
+      "pico:GP22",
+      "keypad1:R2",
+      "green",
+      [
+        "v238.23",
+        "h-484.86"
+      ]
+    ],
+    [
+      "pico:GP21",
+      "keypad1:R3",
+      "green",
+      [
+        "v228.63",
+        "h-456.46"
+      ]
+    ],
+    [
+      "pico:GP20",
+      "keypad1:R4",
+      "green",
+      [
+        "v219.03",
+        "h-437.26"
+      ]
+    ],
+    [
+      "pico:GP19",
+      "keypad1:C1",
+      "green",
+      [
+        "v209.43",
+        "h-418.06"
+      ]
+    ],
+    [
+      "pico:GP18",
+      "keypad1:C2",
+      "green",
+      [
+        "v199.83",
+        "h-24.46"
+      ]
+    ],
+    [
+      "pico:GP17",
+      "keypad1:C3",
+      "green",
+      [
+        "v190.23",
+        "h-370.06"
+      ]
+    ],
+    [
+      "pico:GP16",
+      "keypad1:C4",
+      "green",
+      [
+        "h-5.26",
+        "v180.63"
+      ]
+    ],
+    [
+      "lcd:VCC",
+      "r3:2",
+      "red",
+      [
+        "h-34.56",
+        "v486.62"
+      ]
+    ],
+    [
+      "r4:2",
+      "r3:2",
+      "red",
+      [
+        "v8.4",
+        "h28.8"
+      ]
+    ],
+    [
+      "r2:2",
+      "r3:2",
+      "red",
+      [
+        "v27.6",
+        "h57.6"
+      ]
+    ],
+    [
+      "r1:2",
+      "r3:2",
+      "red",
+      [
+        "v46.8",
+        "h86.4"
+      ]
+    ]
+  ],
+  "dependencies": {}
 }

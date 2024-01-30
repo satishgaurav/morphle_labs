@@ -14,7 +14,7 @@
 #define MS2_PIN 11
 #define MS3_PIN 12
 
-LiquidCrystal_I2C lcd(0x27, 20, 4);
+LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 const uint8_t ROWS = 4;
 const uint8_t COLS = 4;
@@ -48,13 +48,13 @@ inline Print &operator<<(Print &obj, float arg)
 // Motor constants
 const int spr = 200;  // steps/revolution
 const float pl = 8.0; // pitch length mm/revolution
-int ms = 1;           // microsteps
+int ms = 16;          // microsteps
 
 int direction = 1; // 1 for CW, -1 for CCW
 
-float inputPos = 25;
+float inputPos = 100;
 float currentPos = 0;
-float targetPos = 25;
+float targetPos = 100;
 
 // parameters
 float ss = 0; // step size in mm
@@ -128,18 +128,49 @@ int getInput(const char *context, const char *unit)
   // be very careful with comparing name
   if (context == "Velocity")
   {
-    if (inputValue > 100)
+    if (inputValue <= 0)
     {
-      inputValue = 100;
+      inputValue = vmax;
+    }
+    else if (inputValue > 100)
+    {
+      inputValue = vmax;
     }
   }
-
   // be very careful with comparing name
-  if (context == "Acceleration")
+  else if (context == "Acceleration")
   {
-    if (inputValue > 400)
+    if (inputValue <= 0)
     {
-      inputValue = 400;
+      inputValue = acc;
+    }
+    else if (inputValue > 400)
+    {
+      inputValue = acc;
+    }
+  }
+  else if (context == "Microstep")
+  {
+    switch (inputValue)
+    {
+    case 1:
+      inputValue = 1;
+      break;
+    case 2:
+      inputValue = 2;
+      break;
+    case 4:
+      inputValue = 4;
+      break;
+    case 8:
+      inputValue = 8;
+      break;
+    case 16:
+      inputValue = 16;
+      break;
+    default:
+      inputValue = ms;
+      break;
     }
   }
 
@@ -152,9 +183,8 @@ int getInput(const char *context, const char *unit)
   lcd.print(" ");
   lcd.print(unit);
 
-  delay(300);
+  delay(1000);
   lcd.clear();
-
   return inputValue;
 }
 
@@ -202,13 +232,8 @@ void setup()
   lcd.init();
   lcd.backlight();
   lcd.begin(0, 2);
-  lcd.print("Hello World!");
-
-  lcd.setCursor(2, 1);
-  lcd.print("> Pi Pico <");
-
-  // Calculate steps needed for the motion
-  ss = pl / (spr * ms);
+  // lcd.print("");
+  // lcd.print("Hello World!");
 
   // Set up pins
   pinMode(STEP_PIN, OUTPUT);
@@ -219,7 +244,11 @@ void setup()
   pinMode(MS2_PIN, OUTPUT);
   pinMode(MS3_PIN, OUTPUT);
 
-  delay(1000);
+  // Calculate steps needed for the motion
+  ss = pl / (spr * ms);
+  setMicrostepping(ms);
+
+  // delay(10000);
   lcd.clear();
 }
 
@@ -280,13 +309,12 @@ void loop()
     case '4':
       // take acceleration input
       prevMs = ms;
-      ms = getInput("Microstep", "");
+      ms = getInput("Microstep", "steps");
       setMicrostepping(ms);
       ss = pl / (spr * ms);
       break;
     case '#':
       // Start the motor
-      lcd.clear();
       if (motorStartFlag == false)
       {
         motorStartFlag = true;
@@ -377,6 +405,7 @@ void loop()
     // finally calculate the total elapsed time
     runTime = stopTime - startTime;
     motorStartFlag = false;
+    lcd.clear();
   }
 
   // print the input
@@ -394,19 +423,19 @@ void loop()
     prevMs = ms;
   }
 
-  // EVERY_N_SECONDS(1)
-  // {
-  //   Serial << "this is working "
-  //          << "\n";
-  // }
-
   lcd.setCursor(0, 0);
   lcd.print("Position:");
-  lcd.print(currentPos);
+  lcd.print((int)currentPos);
   lcd.print(" mm");
   lcd.setCursor(0, 1);
   lcd.print("Time:");
   lcd.print(tTime / 1000000.0);
   // lcd.print(runTime / 1000.0);
   lcd.print(" s");
+
+  // EVERY_N_SECONDS(1)
+  // {
+  //   Serial << "this is working "
+  //          << "\n";
+  // }
 }

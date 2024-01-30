@@ -14,10 +14,10 @@
       }
     },
     {
-      "type": "wokwi-lcd2004",
+      "type": "wokwi-lcd1602",
       "id": "lcd",
-      "top": -86.52,
-      "left": 11.36,
+      "top": -80,
+      "left": 111.2,
       "attrs": {
         "pins": "i2c"
       }

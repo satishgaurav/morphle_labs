@@ -22,6 +22,8 @@ press \* to confirm the value
 press 3 to change Acceleration; press c to erase and set new value
 press \* to confirm the value
 
-press A to change direction; it will set direction to 1 which is clock wise
+press 4 to change Microstep; press c to erase and set new value
+press \* to confirm the value
 
+press A to change direction; it will set direction to 1 which is clock wise
 press B to change direction to anti-clock wise, it will set direction value to -1
